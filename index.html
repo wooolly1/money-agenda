@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>أجندة فلوسي · تتبّع الميزانية الشهرية</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">💰</span>
+        <div>
+          <h1>أجندة فلوسي</h1>
+          <p class="tag" id="monthLabel">—</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <select id="currency" class="currency" title="العملة">
+          <option value="ر.س">ر.س</option>
+          <option value="د.إ">د.إ</option>
+          <option value="د.ك">د.ك</option>
+          <option value="ج.م">ج.م</option>
+          <option value="$">$</option>
+          <option value="€">€</option>
+        </select>
+        <button id="resetMonth" class="btn ghost" title="بدء شهر جديد">شهر جديد</button>
+      </div>
+    </header>
+
+    <!-- بطاقة الميزانية -->
+    <section class="card budget-card">
+      <div class="budget-head">
+        <div>
+          <span class="muted">الميزانية الشهرية</span>
+          <div class="budget-input-row">
+            <input type="number" id="monthlyBudget" placeholder="0" min="0" inputmode="decimal" />
+            <button id="saveBudget" class="btn primary">حفظ</button>
+          </div>
+        </div>
+        <div class="remaining">
+          <span class="muted">الباقي لك</span>
+          <strong id="remaining" class="remaining-amount">0</strong>
+        </div>
+      </div>
+
+      <div class="progress">
+        <div class="progress-bar" id="monthProgress"></div>
+      </div>
+      <div class="progress-meta">
+        <span>صُرف: <b id="spentTotal">0</b></span>
+        <span><b id="spentPct">0%</b> من الميزانية</span>
+      </div>
+    </section>
+
+    <!-- الأسابيع -->
+    <section class="card">
+      <div class="section-head">
+        <h2>ميزانية الأسابيع</h2>
+        <span class="muted small" id="weeklyCap">—</span>
+      </div>
+      <div id="weeksGrid" class="weeks-grid"></div>
+    </section>
+
+    <!-- إضافة مصروف -->
+    <section class="card">
+      <h2>سجّل مصروف</h2>
+      <form id="expenseForm" class="expense-form">
+        <div class="field">
+          <label>المبلغ</label>
+          <input type="number" id="expAmount" placeholder="0" min="0" step="any" inputmode="decimal" required />
+        </div>
+        <div class="field">
+          <label>الفئة</label>
+          <select id="expCategory">
+            <option value="🍔 أكل">🍔 أكل</option>
+            <option value="🚗 مواصلات">🚗 مواصلات</option>
+            <option value="🛒 تسوق">🛒 تسوق</option>
+            <option value="🏠 فواتير">🏠 فواتير</option>
+            <option value="☕ كافيهات">☕ كافيهات</option>
+            <option value="💊 صحة">💊 صحة</option>
+            <option value="🎮 ترفيه">🎮 ترفيه</option>
+            <option value="📦 أخرى">📦 أخرى</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>التاريخ</label>
+          <input type="date" id="expDate" required />
+        </div>
+        <div class="field grow">
+          <label>ملاحظة (اختياري)</label>
+          <input type="text" id="expNote" placeholder="مثال: غداء مع الأصحاب" />
+        </div>
+        <button type="submit" class="btn primary add-btn">+ إضافة</button>
+      </form>
+    </section>
+
+    <div class="two-col">
+      <!-- وين راحت الفلوس -->
+      <section class="card">
+        <h2>وين راحت فلوسك؟</h2>
+        <div id="breakdown" class="breakdown"></div>
+      </section>
+
+      <!-- سجل المصاريف -->
+      <section class="card">
+        <div class="section-head">
+          <h2>مصاريفك</h2>
+          <span class="muted small" id="txCount">0</span>
+        </div>
+        <ul id="txList" class="tx-list"></ul>
+      </section>
+    </div>
+
+    <footer class="foot">بياناتك محفوظة على جهازك فقط · أجندة فلوسي</footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
