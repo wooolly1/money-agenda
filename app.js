@@ -412,7 +412,7 @@ el("saveGoal").addEventListener("click", () => {
   if (!(g >= 0)) { toast("اكتبي مبلغ صحيح", "error"); return; }
   monthSettings().savingsGoal = g;
   save(); render();
-  toast("تم حفظ هدف الادخار 🐷");
+  toast("تم حفظ هدف الادخار 🏦");
 });
 
 el("currency").addEventListener("change", e => {
