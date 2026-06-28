@@ -495,19 +495,36 @@ el("saveBudget").addEventListener("click", () => {
 });
 
 /* ---------- الدخل ---------- */
+// إظهار مربّع كتابة المصدر عند اختيار «مصدر آخر»
+el("incSource").addEventListener("change", () => {
+  const custom = el("incSource").value === "✏️ مصدر آخر";
+  el("incCustomWrap").style.display = custom ? "flex" : "none";
+  if (custom) el("incCustomSource").focus();
+});
+
 el("incomeForm").addEventListener("submit", e => {
   e.preventDefault();
   const amount = Number(el("incAmount").value);
-  const source = el("incSource").value;
+  let source = el("incSource").value;
   const date = el("incDate").value || `${viewKey}-01`;
   const note = el("incNote").value.trim();
 
   if (!(amount > 0)) { toast("اكتبي مبلغ أكبر من صفر", "error"); return; }
 
+  // مصدر مكتوب بخط اليد
+  if (source === "✏️ مصدر آخر") {
+    const custom = el("incCustomSource").value.trim();
+    if (!custom) { toast("اكتبي اسم المصدر", "error"); return; }
+    source = custom.startsWith("💰") ? custom : "💰 " + custom;
+  }
+
   state.incomes.push({ id: uid(), amount, source, date, note });
   save();
   el("incAmount").value = "";
   el("incNote").value = "";
+  el("incCustomSource").value = "";
+  el("incSource").value = "💼 راتب";
+  el("incCustomWrap").style.display = "none";
   viewKey = date.slice(0, 7);
   render();
   toast("تمت إضافة الدخل 💵");
