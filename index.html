@@ -16,7 +16,7 @@
         <span class="logo">💖</span>
         <div>
           <h1>أجندة فلوسي</h1>
-          <p class="tag" id="monthLabel">—</p>
+          <p class="tag">تتبّعي فلوسك بكل سهولة</p>
         </div>
       </div>
       <div class="topbar-actions">
@@ -29,9 +29,18 @@
           <option value="€">€</option>
         </select>
         <button id="exportBtn" class="btn ghost" title="تصدير CSV">⬇️ تصدير</button>
-        <button id="resetMonth" class="btn ghost" title="بدء شهر جديد">شهر جديد</button>
       </div>
     </header>
+
+    <!-- التنقّل بين الشهور -->
+    <section class="month-nav">
+      <button id="prevMonth" class="nav-btn" title="الشهر السابق">‹</button>
+      <div class="month-center">
+        <strong id="monthLabel">—</strong>
+        <button id="todayBtn" class="btn-link">اليوم</button>
+      </div>
+      <button id="nextMonth" class="nav-btn" title="الشهر التالي">›</button>
+    </section>
 
     <!-- بطاقات سريعة -->
     <section class="stats">
@@ -54,13 +63,13 @@
       <div class="budget-head">
         <div class="inline-inputs">
           <div class="mini-field">
-            <label>💵 الدخل / الراتب الشهري</label>
+            <label>💵 دخل هذا الشهر</label>
             <div class="input-row">
               <input type="number" id="income" placeholder="0" min="0" inputmode="decimal" />
             </div>
           </div>
           <div class="mini-field">
-            <label>🎯 الميزانية الشهرية</label>
+            <label>🎯 ميزانية هذا الشهر</label>
             <div class="input-row">
               <input type="number" id="monthlyBudget" placeholder="0" min="0" inputmode="decimal" />
               <button id="saveBudget" class="btn primary">حفظ</button>
@@ -93,7 +102,7 @@
         </div>
       </div>
       <div class="goal-bar"><div class="goal-fill" id="goalFill"></div></div>
-      <div class="goal-msg" id="goalMsg">حدّد هدف ادخار لهذا الشهر 💕</div>
+      <div class="goal-msg" id="goalMsg">حدّدي هدف ادخار لهذا الشهر 💕</div>
     </section>
 
     <!-- الأسابيع -->
@@ -107,7 +116,7 @@
 
     <!-- إضافة مصروف -->
     <section class="card">
-      <h2>✏️ سجّل مصروف</h2>
+      <h2>✏️ سجّلي مصروف</h2>
       <form id="expenseForm" class="expense-form">
         <div class="field">
           <label>المبلغ</label>
@@ -138,6 +147,74 @@
         </div>
         <button type="submit" class="btn primary add-btn">+ إضافة</button>
       </form>
+    </section>
+
+    <!-- المصاريف المتكررة -->
+    <section class="card">
+      <div class="section-head">
+        <h2>🔁 مصاريف متكررة</h2>
+        <span class="muted small">تنضاف تلقائيًا كل شهر (اشتراكات، إيجار، فواتير ثابتة)</span>
+      </div>
+      <form id="recurringForm" class="expense-form">
+        <div class="field">
+          <label>المبلغ</label>
+          <input type="number" id="recAmount" placeholder="0" min="0" step="any" inputmode="decimal" required />
+        </div>
+        <div class="field">
+          <label>الفئة</label>
+          <select id="recCategory">
+            <option value="🏠 فواتير">🏠 فواتير</option>
+            <option value="🎮 ترفيه">🎮 ترفيه</option>
+            <option value="🚗 مواصلات">🚗 مواصلات</option>
+            <option value="💊 صحة">💊 صحة</option>
+            <option value="🛒 تسوق">🛒 تسوق</option>
+            <option value="📦 أخرى">📦 أخرى</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>يوم الخصم</label>
+          <input type="number" id="recDay" placeholder="1" min="1" max="31" value="1" required />
+        </div>
+        <div class="field grow">
+          <label>الاسم (اختياري)</label>
+          <input type="text" id="recNote" placeholder="مثال: اشتراك نتفلكس" />
+        </div>
+        <button type="submit" class="btn primary add-btn">+ إضافة</button>
+      </form>
+      <ul id="recList" class="tx-list" style="margin-top:14px;"></ul>
+    </section>
+
+    <!-- صناديق الادخار / الاحتياطي -->
+    <section class="card">
+      <div class="section-head">
+        <h2>🫙 صناديق الادخار</h2>
+        <span class="muted small" id="potsTotal">—</span>
+      </div>
+      <form id="potForm" class="expense-form">
+        <div class="field">
+          <label>الأيقونة</label>
+          <select id="potEmoji">
+            <option value="🛟">🛟 احتياطي</option>
+            <option value="🚗">🚗 سيارة</option>
+            <option value="✈️">✈️ سفر</option>
+            <option value="🏠">🏠 بيت</option>
+            <option value="🎓">🎓 تعليم</option>
+            <option value="📱">📱 جوال</option>
+            <option value="🎁">🎁 مناسبات</option>
+            <option value="💍">💍 ادخار كبير</option>
+          </select>
+        </div>
+        <div class="field grow">
+          <label>اسم الصندوق</label>
+          <input type="text" id="potName" placeholder="مثال: تأمين السيارة" required />
+        </div>
+        <div class="field">
+          <label>الهدف (اختياري)</label>
+          <input type="number" id="potTarget" placeholder="0" min="0" inputmode="decimal" />
+        </div>
+        <button type="submit" class="btn primary add-btn">+ صندوق</button>
+      </form>
+      <div id="potsGrid" class="weeks-grid" style="margin-top:14px;"></div>
     </section>
 
     <div class="two-col">
