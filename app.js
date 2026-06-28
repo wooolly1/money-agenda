@@ -9,14 +9,16 @@ const AR_MONTHS = [
 ];
 
 const CAT_COLORS = {
-  "🍔 أكل": "#ef5b6b",
+  "🍔 أكل": "#ff5470",
   "🚗 مواصلات": "#5b8def",
-  "🛒 تسوق": "#f1b24a",
-  "🏠 فواتير": "#36c98e",
-  "☕ كافيهات": "#a06bdc",
+  "🛒 تسوق": "#ffa630",
+  "🏠 فواتير": "#2bbf8a",
+  "☕ كافيهات": "#b06bdc",
   "💊 صحة": "#3fc4d8",
-  "🎮 ترفيه": "#e06bb0",
-  "📦 أخرى": "#8b93a3"
+  "🎮 ترفيه": "#ff4d94",
+  "💄 جمال": "#ff6fa8",
+  "🎁 هدايا": "#f06292",
+  "📦 أخرى": "#b06b8a"
 };
 
 /* ---------- الحالة ---------- */
@@ -27,6 +29,8 @@ function defaultState() {
   return {
     monthKey: monthKeyOf(now),
     budget: 0,
+    income: 0,
+    savingsGoal: 0,
     currency: "ر.س",
     expenses: [] // {id, amount, category, date, note}
   };
@@ -37,7 +41,6 @@ function load() {
     const raw = localStorage.getItem(STORE_KEY);
     if (!raw) return defaultState();
     const s = JSON.parse(raw);
-    // ترحيل بسيط للحقول الناقصة
     return Object.assign(defaultState(), s);
   } catch {
     return defaultState();
@@ -72,27 +75,21 @@ function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
-/* تقسيم الشهر إلى أسابيع (كل أسبوع 7 أيام بدءًا من اليوم 1) */
 function weeksOfMonth(monthKey) {
   const { year, month } = parseMonthKey(monthKey);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const weeks = [];
-  let start = 1;
-  let idx = 1;
+  let start = 1, idx = 1;
   while (start <= daysInMonth) {
     const end = Math.min(start + 6, daysInMonth);
     weeks.push({ index: idx, startDay: start, endDay: end });
-    start = end + 1;
-    idx++;
+    start = end + 1; idx++;
   }
   return weeks;
 }
 
-function dayOfDate(iso) {
-  return Number(iso.split("-")[2]);
-}
+function dayOfDate(iso) { return Number(iso.split("-")[2]); }
 
-/* مصاريف الشهر الحالي فقط */
 function monthExpenses() {
   return state.expenses.filter(e => e.date.startsWith(state.monthKey));
 }
@@ -102,18 +99,24 @@ const el = id => document.getElementById(id);
 
 /* ---------- العرض ---------- */
 function render() {
-  // ترويسة الشهر
   const { year, month } = parseMonthKey(state.monthKey);
   el("monthLabel").textContent = `${AR_MONTHS[month]} ${year}`;
 
   el("currency").value = state.currency;
   el("monthlyBudget").value = state.budget || "";
-  el("expDate").value = el("expDate").value || todayISO();
+  el("income").value = state.income || "";
+  el("savingsGoal").value = state.savingsGoal || "";
+  if (!el("expDate").value) el("expDate").value = todayISO();
 
   const exps = monthExpenses();
   const spent = exps.reduce((s, e) => s + Number(e.amount), 0);
   const remaining = state.budget - spent;
   const pct = state.budget > 0 ? (spent / state.budget) * 100 : 0;
+
+  // البطاقات السريعة
+  el("statIncome").textContent = fmt(state.income);
+  el("statSpent").textContent = fmt(spent);
+  el("statSaved").textContent = fmt(Math.max(state.income - spent, 0));
 
   // الباقي
   const remEl = el("remaining");
@@ -123,27 +126,48 @@ function render() {
   el("spentTotal").textContent = fmt(spent);
   el("spentPct").textContent = Math.round(pct) + "%";
 
-  // شريط التقدم
   const bar = el("monthProgress");
   bar.style.width = Math.min(pct, 100) + "%";
   bar.classList.remove("warn", "over");
   if (pct >= 100) bar.classList.add("over");
   else if (pct >= 80) bar.classList.add("warn");
 
+  renderGoal(spent);
   renderWeeks(exps);
   renderBreakdown(exps, spent);
   renderTxList(exps);
 }
 
+function renderGoal(spent) {
+  const saved = Math.max(state.income - spent, 0);
+  const goal = state.savingsGoal;
+  const fill = el("goalFill");
+  const msg = el("goalMsg");
+  if (!goal || goal <= 0) {
+    fill.style.width = "0%";
+    msg.className = "goal-msg";
+    msg.textContent = "حدّد هدف ادخار لهذا الشهر 💕";
+    return;
+  }
+  const pct = Math.min((saved / goal) * 100, 100);
+  fill.style.width = pct + "%";
+  if (saved >= goal) {
+    msg.className = "goal-msg done";
+    msg.textContent = `🎉 مبروك! وصلتي لهدفك (${fmt(goal)}) وادّخرتي ${fmt(saved)}`;
+  } else {
+    msg.className = "goal-msg";
+    msg.textContent = `ادّخرتي ${fmt(saved)} من ${fmt(goal)} · باقي ${fmt(goal - saved)} (${Math.round(pct)}%)`;
+  }
+}
+
 function renderWeeks(exps) {
   const weeks = weeksOfMonth(state.monthKey);
-  // الحد الأسبوعي = الميزانية مقسومة على عدد الأسابيع
   const weeklyCap = state.budget > 0 ? state.budget / weeks.length : 0;
   el("weeklyCap").textContent = state.budget > 0
     ? `الحد لكل أسبوع: ${fmt(weeklyCap)}`
     : "حدّد ميزانيتك أولًا";
 
-  const { year, month } = parseMonthKey(state.monthKey);
+  const { month } = parseMonthKey(state.monthKey);
   const isCurrentMonth = state.monthKey === monthKeyOf(new Date());
   const todayDay = new Date().getDate();
 
@@ -152,10 +176,7 @@ function renderWeeks(exps) {
 
   weeks.forEach(w => {
     const wSpent = exps
-      .filter(e => {
-        const d = dayOfDate(e.date);
-        return d >= w.startDay && d <= w.endDay;
-      })
+      .filter(e => { const d = dayOfDate(e.date); return d >= w.startDay && d <= w.endDay; })
       .reduce((s, e) => s + Number(e.amount), 0);
 
     const pct = weeklyCap > 0 ? (wSpent / weeklyCap) * 100 : 0;
@@ -170,9 +191,7 @@ function renderWeeks(exps) {
     const left = weeklyCap - wSpent;
     let statusText = "";
     if (weeklyCap > 0) {
-      statusText = left >= 0
-        ? `باقي لك ${fmt(left)}`
-        : `تعدّيت بـ ${fmt(Math.abs(left))}`;
+      statusText = left >= 0 ? `باقي لك ${fmt(left)}` : `تعدّيت بـ ${fmt(Math.abs(left))}`;
     }
 
     const div = document.createElement("div");
@@ -193,7 +212,9 @@ function renderWeeks(exps) {
 
 function renderBreakdown(exps, spent) {
   const box = el("breakdown");
+  const topBox = el("topCat");
   if (exps.length === 0) {
+    topBox.innerHTML = "";
     box.innerHTML = `<p class="empty">ما فيه مصاريف لهذا الشهر بعد 👌</p>`;
     return;
   }
@@ -201,9 +222,13 @@ function renderBreakdown(exps, spent) {
   exps.forEach(e => { totals[e.category] = (totals[e.category] || 0) + Number(e.amount); });
   const rows = Object.entries(totals).sort((a, b) => b[1] - a[1]);
 
+  const [topName, topAmt] = rows[0];
+  const topPct = spent > 0 ? Math.round((topAmt / spent) * 100) : 0;
+  topBox.innerHTML = `<div class="top-cat">أكثر شي صرفتي عليه: <b>${topName}</b> — ${fmt(topAmt)} (${topPct}%)</div>`;
+
   box.innerHTML = rows.map(([cat, amt]) => {
     const pct = spent > 0 ? (amt / spent) * 100 : 0;
-    const color = CAT_COLORS[cat] || "#8b93a3";
+    const color = CAT_COLORS[cat] || "#b06b8a";
     return `
       <div class="bd-row">
         <div class="bd-top">
@@ -219,7 +244,7 @@ function renderTxList(exps) {
   const list = el("txList");
   el("txCount").textContent = `${exps.length} عملية`;
   if (exps.length === 0) {
-    list.innerHTML = `<p class="empty">سجّل أول مصروف لك من فوق ⬆️</p>`;
+    list.innerHTML = `<p class="empty">سجّلي أول مصروف لك من فوق ⬆️</p>`;
     return;
   }
   const sorted = [...exps].sort((a, b) => (b.date + b.id).localeCompare(a.date + a.id));
@@ -250,11 +275,7 @@ function escapeHtml(s) {
 let toastTimer;
 function toast(msg, type = "") {
   let t = document.querySelector(".toast");
-  if (!t) {
-    t = document.createElement("div");
-    t.className = "toast";
-    document.body.appendChild(t);
-  }
+  if (!t) { t = document.createElement("div"); t.className = "toast"; document.body.appendChild(t); }
   t.className = "toast " + type;
   t.textContent = msg;
   requestAnimationFrame(() => t.classList.add("show"));
@@ -264,18 +285,30 @@ function toast(msg, type = "") {
 
 /* ---------- الأحداث ---------- */
 el("saveBudget").addEventListener("click", () => {
-  const v = Number(el("monthlyBudget").value);
-  if (!(v >= 0)) { toast("اكتب مبلغ صحيح", "error"); return; }
-  state.budget = v;
-  save();
-  render();
-  toast("تم حفظ الميزانية ✅");
+  const b = Number(el("monthlyBudget").value);
+  const inc = Number(el("income").value);
+  if (!(b >= 0) || !(inc >= 0)) { toast("اكتبي أرقام صحيحة", "error"); return; }
+  state.budget = b;
+  state.income = inc;
+  save(); render();
+  toast("تم الحفظ ✅");
+});
+
+el("income").addEventListener("change", () => {
+  const inc = Number(el("income").value);
+  if (inc >= 0) { state.income = inc; save(); render(); }
+});
+
+el("saveGoal").addEventListener("click", () => {
+  const g = Number(el("savingsGoal").value);
+  if (!(g >= 0)) { toast("اكتبي مبلغ صحيح", "error"); return; }
+  state.savingsGoal = g;
+  save(); render();
+  toast("تم حفظ هدف الادخار 🐷");
 });
 
 el("currency").addEventListener("change", e => {
-  state.currency = e.target.value;
-  save();
-  render();
+  state.currency = e.target.value; save(); render();
 });
 
 el("expenseForm").addEventListener("submit", e => {
@@ -285,15 +318,12 @@ el("expenseForm").addEventListener("submit", e => {
   const date = el("expDate").value || todayISO();
   const note = el("expNote").value.trim();
 
-  if (!(amount > 0)) { toast("اكتب مبلغ أكبر من صفر", "error"); return; }
+  if (!(amount > 0)) { toast("اكتبي مبلغ أكبر من صفر", "error"); return; }
 
   state.expenses.push({ id: uid(), amount, category, date, note });
   save();
-
-  // تنبيهات الحد الأسبوعي والشهري
   checkLimits(date);
 
-  // تصفير الحقول
   el("expAmount").value = "";
   el("expNote").value = "";
   render();
@@ -303,13 +333,11 @@ function checkLimits(date) {
   const exps = monthExpenses();
   const spent = exps.reduce((s, e) => s + Number(e.amount), 0);
 
-  // الشهري
   if (state.budget > 0 && spent > state.budget) {
-    toast("⚠️ تعدّيت ميزانيتك الشهرية!", "error");
+    toast("⚠️ تعدّيتي ميزانيتك الشهرية!", "error");
     return;
   }
 
-  // الأسبوعي
   const weeks = weeksOfMonth(state.monthKey);
   const weeklyCap = state.budget > 0 ? state.budget / weeks.length : 0;
   const day = dayOfDate(date);
@@ -318,13 +346,9 @@ function checkLimits(date) {
     const wSpent = exps
       .filter(e => { const d = dayOfDate(e.date); return d >= w.startDay && d <= w.endDay; })
       .reduce((s, e) => s + Number(e.amount), 0);
-    if (wSpent > weeklyCap) {
-      toast(`⚠️ تعدّيت ميزانية الأسبوع ${w.index}!`, "error");
-    } else if (wSpent >= weeklyCap * 0.8) {
-      toast(`انتبه: قربت تخلّص ميزانية الأسبوع ${w.index}`, "warn");
-    } else {
-      toast("تمت إضافة المصروف ✅");
-    }
+    if (wSpent > weeklyCap) toast(`⚠️ تعدّيتي ميزانية الأسبوع ${w.index}!`, "error");
+    else if (wSpent >= weeklyCap * 0.8) toast(`انتبهي: قربتي تخلّصي ميزانية الأسبوع ${w.index}`, "warn");
+    else toast("تمت إضافة المصروف ✅");
   } else {
     toast("تمت إضافة المصروف ✅");
   }
@@ -333,22 +357,40 @@ function checkLimits(date) {
 el("txList").addEventListener("click", e => {
   const btn = e.target.closest(".tx-del");
   if (!btn) return;
-  const id = btn.dataset.id;
-  state.expenses = state.expenses.filter(x => x.id !== id);
-  save();
-  render();
+  state.expenses = state.expenses.filter(x => x.id !== btn.dataset.id);
+  save(); render();
   toast("تم حذف المصروف");
 });
 
 el("resetMonth").addEventListener("click", () => {
   const nowKey = monthKeyOf(new Date());
-  if (state.monthKey === nowKey) {
-    if (!confirm("تبدأ شهر جديد؟ سيتم الانتقال للشهر الحالي والاحتفاظ بكل سجلاتك السابقة.")) return;
-  }
+  if (!confirm("تبين تنتقلين للشهر الحالي؟ سيتم الاحتفاظ بكل سجلاتك السابقة.")) return;
   state.monthKey = nowKey;
-  save();
-  render();
+  save(); render();
   toast("بدأنا متابعة الشهر الحالي 📅");
+});
+
+/* ---------- تصدير CSV ---------- */
+el("exportBtn").addEventListener("click", () => {
+  const exps = monthExpenses();
+  if (exps.length === 0) { toast("ما فيه مصاريف للتصدير", "warn"); return; }
+  const header = ["التاريخ", "الفئة", "المبلغ", "ملاحظة"];
+  const rows = [...exps]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map(e => [e.date, e.category, e.amount, (e.note || "").replace(/"/g, '""')]);
+  const csv = [header, ...rows]
+    .map(r => r.map(c => `"${c}"`).join(","))
+    .join("\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `مصاريف-${state.monthKey}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast("تم تصدير الملف ⬇️");
 });
 
 /* ---------- البدء ---------- */

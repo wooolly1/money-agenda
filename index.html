@@ -13,7 +13,7 @@
   <div class="app">
     <header class="topbar">
       <div class="brand">
-        <span class="logo">💰</span>
+        <span class="logo">💖</span>
         <div>
           <h1>أجندة فلوسي</h1>
           <p class="tag" id="monthLabel">—</p>
@@ -28,18 +28,43 @@
           <option value="$">$</option>
           <option value="€">€</option>
         </select>
+        <button id="exportBtn" class="btn ghost" title="تصدير CSV">⬇️ تصدير</button>
         <button id="resetMonth" class="btn ghost" title="بدء شهر جديد">شهر جديد</button>
       </div>
     </header>
 
+    <!-- بطاقات سريعة -->
+    <section class="stats">
+      <div class="stat income">
+        <span class="lbl">💵 الدخل</span>
+        <div class="val" id="statIncome">0</div>
+      </div>
+      <div class="stat spent">
+        <span class="lbl">🧾 المصروف</span>
+        <div class="val" id="statSpent">0</div>
+      </div>
+      <div class="stat save">
+        <span class="lbl">🐷 ادّخرت</span>
+        <div class="val" id="statSaved">0</div>
+      </div>
+    </section>
+
     <!-- بطاقة الميزانية -->
     <section class="card budget-card">
       <div class="budget-head">
-        <div>
-          <span class="muted">الميزانية الشهرية</span>
-          <div class="budget-input-row">
-            <input type="number" id="monthlyBudget" placeholder="0" min="0" inputmode="decimal" />
-            <button id="saveBudget" class="btn primary">حفظ</button>
+        <div class="inline-inputs">
+          <div class="mini-field">
+            <label>💵 الدخل / الراتب الشهري</label>
+            <div class="input-row">
+              <input type="number" id="income" placeholder="0" min="0" inputmode="decimal" />
+            </div>
+          </div>
+          <div class="mini-field">
+            <label>🎯 الميزانية الشهرية</label>
+            <div class="input-row">
+              <input type="number" id="monthlyBudget" placeholder="0" min="0" inputmode="decimal" />
+              <button id="saveBudget" class="btn primary">حفظ</button>
+            </div>
           </div>
         </div>
         <div class="remaining">
@@ -57,10 +82,24 @@
       </div>
     </section>
 
+    <!-- هدف الادخار -->
+    <section class="card">
+      <div class="section-head">
+        <h2>🐷 هدف الادخار</h2>
+        <div class="input-row">
+          <input type="number" id="savingsGoal" placeholder="مثال: 1000" min="0" inputmode="decimal"
+                 style="width:140px;background:var(--card-2);border:1.5px solid var(--line);color:var(--text);border-radius:12px;padding:8px 12px;font-family:inherit;font-weight:700;" />
+          <button id="saveGoal" class="btn ghost">حفظ الهدف</button>
+        </div>
+      </div>
+      <div class="goal-bar"><div class="goal-fill" id="goalFill"></div></div>
+      <div class="goal-msg" id="goalMsg">حدّد هدف ادخار لهذا الشهر 💕</div>
+    </section>
+
     <!-- الأسابيع -->
     <section class="card">
       <div class="section-head">
-        <h2>ميزانية الأسابيع</h2>
+        <h2>📅 ميزانية الأسابيع</h2>
         <span class="muted small" id="weeklyCap">—</span>
       </div>
       <div id="weeksGrid" class="weeks-grid"></div>
@@ -68,7 +107,7 @@
 
     <!-- إضافة مصروف -->
     <section class="card">
-      <h2>سجّل مصروف</h2>
+      <h2>✏️ سجّل مصروف</h2>
       <form id="expenseForm" class="expense-form">
         <div class="field">
           <label>المبلغ</label>
@@ -84,6 +123,8 @@
             <option value="☕ كافيهات">☕ كافيهات</option>
             <option value="💊 صحة">💊 صحة</option>
             <option value="🎮 ترفيه">🎮 ترفيه</option>
+            <option value="💄 جمال">💄 جمال</option>
+            <option value="🎁 هدايا">🎁 هدايا</option>
             <option value="📦 أخرى">📦 أخرى</option>
           </select>
         </div>
@@ -102,21 +143,22 @@
     <div class="two-col">
       <!-- وين راحت الفلوس -->
       <section class="card">
-        <h2>وين راحت فلوسك؟</h2>
+        <h2>🔍 وين راحت فلوسك؟</h2>
+        <div id="topCat"></div>
         <div id="breakdown" class="breakdown"></div>
       </section>
 
       <!-- سجل المصاريف -->
       <section class="card">
         <div class="section-head">
-          <h2>مصاريفك</h2>
+          <h2>🧾 مصاريفك</h2>
           <span class="muted small" id="txCount">0</span>
         </div>
         <ul id="txList" class="tx-list"></ul>
       </section>
     </div>
 
-    <footer class="foot">بياناتك محفوظة على جهازك فقط · أجندة فلوسي</footer>
+    <footer class="foot">بياناتك محفوظة على جهازك فقط 💖 أجندة فلوسي</footer>
   </div>
 
   <script src="app.js"></script>
