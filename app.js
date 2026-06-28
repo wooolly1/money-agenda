@@ -27,13 +27,26 @@ let viewKey = monthKeyOf(new Date()); // الشهر المعروض حاليًا
 
 function defaultState() {
   return {
-    months: {},        // { "2026-06": { budget, income, savingsGoal } }
+    months: {},        // { "2026-06": { budget, savingsGoal } }
     recurring: [],      // [{ id, amount, category, day, note }]
     pots: [],           // [{ id, name, emoji, target, balance }]
+    incomes: [],        // [{ id, amount, source, date, note }]
     currency: "ر.س",
     expenses: []        // [{ id, amount, category, date, note, recurringId? }]
   };
 }
+
+const SOURCE_COLORS = {
+  "💼 راتب": "#2bbf8a",
+  "💸 مكافأة": "#5b8def",
+  "🔁 تحويل": "#b06bdc",
+  "🛍️ بيع": "#ffa630",
+  "📈 استثمار": "#3fc4d8",
+  "💻 عمل حر": "#ff4d94",
+  "🎁 هدية": "#f06292",
+  "🏷️ استرجاع": "#ff6fa8",
+  "➕ أخرى": "#b06b8a"
+};
 
 function load() {
   try {
@@ -45,6 +58,7 @@ function load() {
     base.expenses = Array.isArray(s.expenses) ? s.expenses : [];
     base.recurring = Array.isArray(s.recurring) ? s.recurring : [];
     base.pots = Array.isArray(s.pots) ? s.pots : [];
+    base.incomes = Array.isArray(s.incomes) ? s.incomes : [];
     base.months = s.months && typeof s.months === "object" ? s.months : {};
     // ترحيل من النسخة القديمة (ميزانية واحدة عامة)
     if (!s.months && (s.budget || s.income || s.savingsGoal)) {
@@ -55,6 +69,17 @@ function load() {
         savingsGoal: Number(s.savingsGoal) || 0
       };
     }
+    // ترحيل الدخل القديم (رقم واحد لكل شهر) إلى سجلات دخل مفصّلة
+    Object.keys(base.months).forEach(key => {
+      const m = base.months[key];
+      if (m && Number(m.income) > 0) {
+        base.incomes.push({
+          id: uid(), amount: Number(m.income), source: "💼 راتب",
+          date: `${key}-01`, note: ""
+        });
+        m.income = 0;
+      }
+    });
     return base;
   } catch {
     return defaultState();
@@ -109,6 +134,12 @@ function dayOfDate(iso) { return Number(iso.split("-")[2]); }
 function monthExpenses(key = viewKey) {
   return state.expenses.filter(e => e.date.startsWith(key));
 }
+function monthIncomes(key = viewKey) {
+  return state.incomes.filter(i => i.date.startsWith(key));
+}
+function monthIncomeTotal(key = viewKey) {
+  return monthIncomes(key).reduce((s, i) => s + Number(i.amount), 0);
+}
 
 /* ---------- المصاريف المتكررة ----------
    تُطبّق على الشهر الحقيقي الحالي: لكل مصروف متكرر، إذا ما انضاف لهذا الشهر نضيفه. */
@@ -141,18 +172,21 @@ function render() {
   const ms = monthSettings();
   el("currency").value = state.currency;
   el("monthlyBudget").value = ms.budget || "";
-  el("income").value = ms.income || "";
   el("savingsGoal").value = ms.savingsGoal || "";
   if (!el("expDate").value) el("expDate").value = todayISO();
+  if (!el("incDate").value) el("incDate").value = todayISO();
 
   const exps = monthExpenses();
+  const incs = monthIncomes();
+  const income = monthIncomeTotal();
   const spent = exps.reduce((s, e) => s + Number(e.amount), 0);
   const remaining = ms.budget - spent;
   const pct = ms.budget > 0 ? (spent / ms.budget) * 100 : 0;
 
-  el("statIncome").textContent = fmt(ms.income);
+  el("incomeDisplay").textContent = fmt(income);
+  el("statIncome").textContent = fmt(income);
   el("statSpent").textContent = fmt(spent);
-  el("statSaved").textContent = fmt(Math.max(ms.income - spent, 0));
+  el("statSaved").textContent = fmt(Math.max(income - spent, 0));
 
   const remEl = el("remaining");
   remEl.textContent = fmt(remaining);
@@ -167,12 +201,69 @@ function render() {
   if (pct >= 100) bar.classList.add("over");
   else if (pct >= 80) bar.classList.add("warn");
 
-  renderGoal(ms, spent);
+  renderGoal(income, spent);
   renderWeeks(ms, exps);
   renderBreakdown(exps, spent);
   renderTxList(exps);
+  renderIncomeBreakdown(incs, income);
+  renderIncomeList(incs);
   renderRecurring();
   renderPots();
+}
+
+function renderIncomeBreakdown(incs, income) {
+  const box = el("incBreakdown");
+  const topBox = el("incTopSource");
+  if (incs.length === 0) {
+    topBox.innerHTML = "";
+    box.innerHTML = `<p class="empty">ما سجّلتي دخل لهذا الشهر بعد 💵</p>`;
+    return;
+  }
+  const totals = {};
+  incs.forEach(i => { totals[i.source] = (totals[i.source] || 0) + Number(i.amount); });
+  const rows = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+
+  const [topName, topAmt] = rows[0];
+  const topPct = income > 0 ? Math.round((topAmt / income) * 100) : 0;
+  topBox.innerHTML = `<div class="top-cat inc">أكثر مصدر لدخلك: <b>${topName}</b> — ${fmt(topAmt)} (${topPct}%)</div>`;
+
+  box.innerHTML = rows.map(([src, amt]) => {
+    const pct = income > 0 ? (amt / income) * 100 : 0;
+    const color = SOURCE_COLORS[src] || "#2bbf8a";
+    return `
+      <div class="bd-row">
+        <div class="bd-top">
+          <span>${src}</span>
+          <span class="amt">${fmt(amt)} · ${Math.round(pct)}%</span>
+        </div>
+        <div class="bd-bar"><div class="bd-fill" style="width:${pct}%;background:${color}"></div></div>
+      </div>`;
+  }).join("");
+}
+
+function renderIncomeList(incs) {
+  const list = el("incList");
+  el("incCount").textContent = `${incs.length} دخل`;
+  if (incs.length === 0) {
+    list.innerHTML = `<p class="empty">سجّلي أول دخل لك من فوق ⬆️</p>`;
+    return;
+  }
+  const sorted = [...incs].sort((a, b) => (b.date + b.id).localeCompare(a.date + a.id));
+  list.innerHTML = sorted.map(i => {
+    const d = i.date.split("-");
+    const dateStr = `${Number(d[2])} ${AR_MONTHS[Number(d[1]) - 1]}`;
+    return `
+      <li class="tx">
+        <div class="tx-info">
+          <span class="tx-cat">${i.source}</span>
+          <span class="tx-meta">${dateStr}${i.note ? " · " + escapeHtml(i.note) : ""}</span>
+        </div>
+        <div class="tx-right">
+          <span class="tx-amt inc">+ ${fmt(i.amount)}</span>
+          <button class="inc-del" data-id="${i.id}" title="حذف">✕</button>
+        </div>
+      </li>`;
+  }).join("");
 }
 
 function renderPots() {
@@ -207,8 +298,9 @@ function renderPots() {
   }).join("");
 }
 
-function renderGoal(ms, spent) {
-  const saved = Math.max(ms.income - spent, 0);
+function renderGoal(income, spent) {
+  const ms = monthSettings();
+  const saved = Math.max(income - spent, 0);
   const goal = ms.savingsGoal;
   const fill = el("goalFill");
   const msg = el("goalMsg");
@@ -381,6 +473,7 @@ function shiftMonth(delta) {
   const d = new Date(year, month + delta, 1);
   viewKey = monthKeyOf(d);
   el("expDate").value = "";
+  el("incDate").value = "";
   render();
 }
 el("prevMonth").addEventListener("click", () => shiftMonth(-1));
@@ -388,23 +481,44 @@ el("nextMonth").addEventListener("click", () => shiftMonth(1));
 el("todayBtn").addEventListener("click", () => {
   viewKey = monthKeyOf(new Date());
   el("expDate").value = todayISO();
+  el("incDate").value = todayISO();
   render();
 });
 
 /* ---------- الأحداث ---------- */
 el("saveBudget").addEventListener("click", () => {
   const b = Number(el("monthlyBudget").value);
-  const inc = Number(el("income").value);
-  if (!(b >= 0) || !(inc >= 0)) { toast("اكتبي أرقام صحيحة", "error"); return; }
-  const ms = monthSettings();
-  ms.budget = b; ms.income = inc;
+  if (!(b >= 0)) { toast("اكتبي مبلغ صحيح", "error"); return; }
+  monthSettings().budget = b;
   save(); render();
-  toast("تم الحفظ ✅");
+  toast("تم حفظ الميزانية ✅");
 });
 
-el("income").addEventListener("change", () => {
-  const inc = Number(el("income").value);
-  if (inc >= 0) { monthSettings().income = inc; save(); render(); }
+/* ---------- الدخل ---------- */
+el("incomeForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const amount = Number(el("incAmount").value);
+  const source = el("incSource").value;
+  const date = el("incDate").value || `${viewKey}-01`;
+  const note = el("incNote").value.trim();
+
+  if (!(amount > 0)) { toast("اكتبي مبلغ أكبر من صفر", "error"); return; }
+
+  state.incomes.push({ id: uid(), amount, source, date, note });
+  save();
+  el("incAmount").value = "";
+  el("incNote").value = "";
+  viewKey = date.slice(0, 7);
+  render();
+  toast("تمت إضافة الدخل 💵");
+});
+
+el("incList").addEventListener("click", e => {
+  const btn = e.target.closest(".inc-del");
+  if (!btn) return;
+  state.incomes = state.incomes.filter(x => x.id !== btn.dataset.id);
+  save(); render();
+  toast("تم حذف الدخل");
 });
 
 el("saveGoal").addEventListener("click", () => {
@@ -584,4 +698,5 @@ el("exportBtn").addEventListener("click", () => {
 /* ---------- البدء ---------- */
 applyRecurring();
 el("expDate").value = todayISO();
+el("incDate").value = todayISO();
 render();

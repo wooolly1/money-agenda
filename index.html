@@ -63,16 +63,16 @@
       <div class="budget-head">
         <div class="inline-inputs">
           <div class="mini-field">
-            <label>💵 دخل هذا الشهر</label>
-            <div class="input-row">
-              <input type="number" id="income" placeholder="0" min="0" inputmode="decimal" />
-            </div>
-          </div>
-          <div class="mini-field">
             <label>🎯 ميزانية هذا الشهر</label>
             <div class="input-row">
               <input type="number" id="monthlyBudget" placeholder="0" min="0" inputmode="decimal" />
               <button id="saveBudget" class="btn primary">حفظ</button>
+            </div>
+          </div>
+          <div class="mini-field">
+            <label>💵 دخل هذا الشهر</label>
+            <div class="input-row">
+              <strong id="incomeDisplay" style="font-size:18px;font-weight:800;color:var(--green);">0</strong>
             </div>
           </div>
         </div>
@@ -90,6 +90,58 @@
         <span><b id="spentPct">0%</b> من الميزانية</span>
       </div>
     </section>
+
+    <!-- الدخل -->
+    <section class="card">
+      <h2>💵 سجّلي دخلك</h2>
+      <form id="incomeForm" class="expense-form">
+        <div class="field">
+          <label>المبلغ</label>
+          <input type="number" id="incAmount" placeholder="0" min="0" step="any" inputmode="decimal" required />
+        </div>
+        <div class="field">
+          <label>من وين؟ (المصدر)</label>
+          <select id="incSource">
+            <option value="💼 راتب">💼 راتب</option>
+            <option value="💸 مكافأة">💸 مكافأة</option>
+            <option value="🔁 تحويل">🔁 تحويل</option>
+            <option value="🛍️ بيع">🛍️ بيع</option>
+            <option value="📈 استثمار">📈 استثمار</option>
+            <option value="💻 عمل حر">💻 عمل حر</option>
+            <option value="🎁 هدية">🎁 هدية</option>
+            <option value="🏷️ استرجاع">🏷️ استرجاع</option>
+            <option value="➕ أخرى">➕ أخرى</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>التاريخ</label>
+          <input type="date" id="incDate" required />
+        </div>
+        <div class="field grow">
+          <label>ملاحظة (اختياري)</label>
+          <input type="text" id="incNote" placeholder="مثال: راتب شهر يونيو" />
+        </div>
+        <button type="submit" class="btn primary add-btn">+ إضافة</button>
+      </form>
+    </section>
+
+    <div class="two-col">
+      <!-- من وين جاك الدخل -->
+      <section class="card">
+        <h2>💰 من وين جاك دخلك؟</h2>
+        <div id="incTopSource"></div>
+        <div id="incBreakdown" class="breakdown"></div>
+      </section>
+
+      <!-- سجل الدخل -->
+      <section class="card">
+        <div class="section-head">
+          <h2>🧾 دخلك</h2>
+          <span class="muted small" id="incCount">0</span>
+        </div>
+        <ul id="incList" class="tx-list"></ul>
+      </section>
+    </div>
 
     <!-- هدف الادخار -->
     <section class="card">
