@@ -259,6 +259,12 @@ body {
 .tx-del { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 17px; padding: 2px 7px; border-radius: 8px; }
 .tx-del:hover { color: var(--red); background: rgba(255,84,112,.12); }
 
+.save-note {
+  text-align: center; color: var(--muted); font-size: 12.5px;
+  background: var(--card); border: 1.5px dashed var(--line-2);
+  border-radius: 14px; padding: 10px 14px; margin-bottom: 16px;
+}
+
 .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 26px; }
 
 /* Toast */

@@ -691,25 +691,140 @@ el("potsGrid").addEventListener("click", e => {
   }
 });
 
-/* ---------- تصدير CSV ---------- */
-el("exportBtn").addEventListener("click", () => {
-  const exps = monthExpenses();
-  if (exps.length === 0) { toast("ما فيه مصاريف للتصدير", "warn"); return; }
-  const header = ["التاريخ", "الفئة", "المبلغ", "ملاحظة", "متكرر"];
-  const rows = [...exps]
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .map(e => [e.date, e.category, e.amount, (e.note || "").replace(/"/g, '""'), e.recurringId ? "نعم" : "لا"]);
-  const csv = [header, ...rows].map(r => r.map(c => `"${c}"`).join(",")).join("\n");
-  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+/* ---------- تنزيل ملف ---------- */
+function download(filename, content, mime, bom = true) {
+  const parts = bom ? ["﻿", content] : [content];
+  const blob = new Blob(parts, { type: mime + ";charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `مصاريف-${viewKey}.csv`;
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  toast("تم تصدير الملف ⬇️");
+}
+
+/* ---------- تصدير اكسل شامل (كل البيانات، كل الشهور) ---------- */
+function xmlEscape(s) {
+  return String(s).replace(/[&<>"']/g, c => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" }[c]
+  ));
+}
+function xlCell(v) {
+  if (typeof v === "number" && isFinite(v)) {
+    return `<Cell><Data ss:Type="Number">${v}</Data></Cell>`;
+  }
+  return `<Cell><Data ss:Type="String">${xmlEscape(v == null ? "" : v)}</Data></Cell>`;
+}
+function xlRow(cells) {
+  return `<Row>${cells.map(xlCell).join("")}</Row>`;
+}
+function xlSheet(name, headerRow, dataRows) {
+  const rows = [xlRow(headerRow), ...dataRows.map(xlRow)].join("");
+  return `<Worksheet ss:Name="${xmlEscape(name)}">
+<Table>${rows}</Table>
+<WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><DisplayRightToLeft/></WorksheetOptions>
+</Worksheet>`;
+}
+
+function buildExcel() {
+  const cur = state.currency;
+
+  // كل الشهور المعروفة (من الإعدادات + المصاريف + الدخل)
+  const keys = new Set([
+    ...Object.keys(state.months),
+    ...state.expenses.map(e => e.date.slice(0, 7)),
+    ...state.incomes.map(i => i.date.slice(0, 7))
+  ]);
+  const monthsSorted = [...keys].filter(Boolean).sort();
+
+  // ورقة المصاريف
+  const expRows = [...state.expenses]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map(e => [e.date.slice(0, 7), e.date, e.category, Number(e.amount), e.note || "", e.recurringId ? "نعم" : "لا"]);
+
+  // ورقة الدخل
+  const incRows = [...state.incomes]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map(i => [i.date.slice(0, 7), i.date, i.source, Number(i.amount), i.note || ""]);
+
+  // ورقة الميزانيات الشهرية (ملخّص)
+  const sumRows = monthsSorted.map(k => {
+    const ms = state.months[k] || {};
+    const budget = Number(ms.budget) || 0;
+    const goal = Number(ms.savingsGoal) || 0;
+    const spent = state.expenses.filter(e => e.date.startsWith(k)).reduce((s, e) => s + Number(e.amount), 0);
+    const income = state.incomes.filter(i => i.date.startsWith(k)).reduce((s, i) => s + Number(i.amount), 0);
+    return [k, budget, income, spent, budget - spent, Math.max(income - spent, 0), goal];
+  });
+
+  // ورقة الصناديق
+  const potRows = state.pots.map(p => [p.name, Number(p.balance) || 0, Number(p.target) || 0]);
+
+  // ورقة المتكررة
+  const recRows = state.recurring.map(r => [r.category, Number(r.amount) || 0, r.day, r.note || ""]);
+
+  const sheets = [
+    xlSheet("الملخّص الشهري", ["الشهر", `الميزانية (${cur})`, `الدخل (${cur})`, `المصروف (${cur})`, `المتبقّي (${cur})`, `المُدّخر (${cur})`, `هدف الادخار (${cur})`], sumRows),
+    xlSheet("المصاريف", ["الشهر", "التاريخ", "الفئة", `المبلغ (${cur})`, "ملاحظة", "متكرر"], expRows),
+    xlSheet("الدخل", ["الشهر", "التاريخ", "المصدر", `المبلغ (${cur})`, "ملاحظة"], incRows),
+    xlSheet("الصناديق", ["الصندوق", `الرصيد (${cur})`, `الهدف (${cur})`], potRows),
+    xlSheet("المصاريف المتكررة", ["الفئة", `المبلغ (${cur})`, "يوم الخصم", "الاسم"], recRows)
+  ].join("\n");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+${sheets}
+</Workbook>`;
+}
+
+el("excelBtn").addEventListener("click", () => {
+  if (state.expenses.length === 0 && state.incomes.length === 0 && state.pots.length === 0) {
+    toast("ما فيه بيانات للتصدير بعد", "warn");
+    return;
+  }
+  download("أجندة-فلوسي.xls", buildExcel(), "application/vnd.ms-excel");
+  toast("تم تصدير ملف الاكسل 📊");
+});
+
+/* ---------- نسخة احتياطية / استرجاع (JSON) ---------- */
+el("backupBtn").addEventListener("click", () => {
+  const data = JSON.stringify(state, null, 2);
+  const stamp = todayISO();
+  download(`نسخة-أجندة-فلوسي-${stamp}.json`, data, "application/json", false);
+  toast("تم حفظ نسخة احتياطية 💾");
+});
+
+el("restoreBtn").addEventListener("click", () => el("restoreFile").click());
+
+el("restoreFile").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const obj = JSON.parse(String(reader.result).replace(/^﻿/, ""));
+      if (!obj || typeof obj !== "object" || !Array.isArray(obj.expenses)) {
+        throw new Error("صيغة غير صحيحة");
+      }
+      if (!confirm("استرجاع هذه النسخة سيستبدل بياناتك الحالية. متأكدة؟")) {
+        el("restoreFile").value = "";
+        return;
+      }
+      localStorage.setItem(STORE_KEY, JSON.stringify(obj));
+      state = load();
+      viewKey = monthKeyOf(new Date());
+      applyRecurring();
+      render();
+      toast("تم استرجاع البيانات بنجاح ✅");
+    } catch (err) {
+      toast("الملف غير صالح ❌", "error");
+    }
+    el("restoreFile").value = "";
+  };
+  reader.readAsText(file);
 });
 
 /* ---------- البدء ---------- */

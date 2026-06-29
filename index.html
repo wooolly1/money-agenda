@@ -28,9 +28,14 @@
           <option value="$">$</option>
           <option value="€">€</option>
         </select>
-        <button id="exportBtn" class="btn ghost" title="تصدير CSV">⬇️ تصدير</button>
+        <button id="excelBtn" class="btn ghost" title="تصدير كل البيانات إلى ملف اكسل">📊 اكسل</button>
+        <button id="backupBtn" class="btn ghost" title="حفظ نسخة احتياطية من كل بياناتك">💾 نسخة</button>
+        <button id="restoreBtn" class="btn ghost" title="استرجاع البيانات من نسخة احتياطية">📥 استرجاع</button>
+        <input type="file" id="restoreFile" accept="application/json,.json" hidden />
       </div>
     </header>
+
+    <p class="save-note">✅ بياناتك محفوظة تلقائيًا في هذه الصفحة على جهازك. للاحتفاظ بنسخة أو نقلها لجهاز ثاني استخدمي «💾 نسخة».</p>
 
     <!-- التنقّل بين الشهور -->
     <section class="month-nav">
