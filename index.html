@@ -310,6 +310,19 @@
     <footer class="foot">بياناتك محفوظة على جهازك فقط 💖 أجندة فلوسي</footer>
   </div>
 
+  <!-- نافذة داخلية (بديلة عن prompt/confirm المحجوبة في آيفون) -->
+  <div id="modal" class="modal-overlay" hidden>
+    <div class="modal">
+      <h3 id="modalTitle">—</h3>
+      <p id="modalSub" class="modal-sub"></p>
+      <input type="number" id="modalInput" inputmode="decimal" step="any" min="0" />
+      <div class="modal-actions">
+        <button id="modalCancel" class="btn ghost" type="button">إلغاء</button>
+        <button id="modalOk" class="btn primary" type="button">تأكيد</button>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>

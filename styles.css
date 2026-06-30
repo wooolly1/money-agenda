@@ -267,6 +267,28 @@ body {
 
 .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 26px; }
 
+/* Modal (deposit/withdraw/confirm) */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(74,35,54,.45);
+  display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 100;
+}
+.modal-overlay[hidden] { display: none; }
+.modal {
+  background: var(--card); border-radius: 20px; padding: 22px; width: 100%; max-width: 340px;
+  box-shadow: var(--shadow); border: 1.5px solid var(--line);
+}
+.modal h3 { font-size: 17px; margin-bottom: 6px; }
+.modal-sub { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+.modal-sub:empty { display: none; }
+.modal input {
+  width: 100%; background: var(--card-2); border: 1.5px solid var(--line); color: var(--text);
+  border-radius: 12px; padding: 12px; font-family: inherit; font-size: 18px; font-weight: 700;
+}
+.modal input:focus { outline: none; border-color: var(--pink); box-shadow: 0 0 0 3px var(--pink-soft); }
+.modal input.hidden { display: none; }
+.modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+.modal-actions .btn { flex: 1; }
+
 /* Toast */
 .toast {
   position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px);

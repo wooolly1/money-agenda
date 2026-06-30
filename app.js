@@ -467,6 +467,50 @@ function toast(msg, type = "") {
   toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
 }
 
+/* ---------- نافذة داخلية (بديلة عن prompt/confirm) ---------- */
+let modalResolve = null;
+function askAmount(title, sub = "") {
+  return new Promise(resolve => {
+    modalResolve = resolve;
+    el("modalTitle").textContent = title;
+    el("modalSub").textContent = sub;
+    const inp = el("modalInput");
+    inp.classList.remove("hidden");
+    inp.value = "";
+    el("modalOk").textContent = "تأكيد";
+    el("modal").hidden = false;
+    setTimeout(() => inp.focus(), 50);
+  });
+}
+function askConfirm(title, sub = "") {
+  return new Promise(resolve => {
+    modalResolve = resolve;
+    el("modalTitle").textContent = title;
+    el("modalSub").textContent = sub;
+    el("modalInput").classList.add("hidden");
+    el("modalOk").textContent = "نعم، تأكيد";
+    el("modal").hidden = false;
+  });
+}
+function closeModal(value) {
+  el("modal").hidden = true;
+  const r = modalResolve;
+  modalResolve = null;
+  if (r) r(value);
+}
+el("modalCancel").addEventListener("click", () => closeModal(null));
+el("modalOk").addEventListener("click", () => {
+  const inp = el("modalInput");
+  if (inp.classList.contains("hidden")) { closeModal(true); return; }
+  closeModal(inp.value === "" ? null : Number(inp.value));
+});
+el("modalInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") el("modalOk").click();
+});
+el("modal").addEventListener("click", e => {
+  if (e.target === el("modal")) closeModal(null);
+});
+
 /* ---------- التنقّل بين الشهور ---------- */
 function shiftMonth(delta) {
   const { year, month } = parseMonthKey(viewKey);
@@ -626,11 +670,12 @@ el("recurringForm").addEventListener("submit", e => {
   toast("تمت إضافة المصروف المتكرر 🔁");
 });
 
-el("recList").addEventListener("click", e => {
+el("recList").addEventListener("click", async e => {
   const btn = e.target.closest(".rec-del");
   if (!btn) return;
   const id = btn.dataset.id;
-  if (!confirm("حذف هذا المصروف المتكرر؟ (لن يتكرر مستقبلًا، والمصاريف المسجّلة سابقًا تبقى)")) return;
+  const ok = await askConfirm("حذف هذا المصروف المتكرر؟", "لن يتكرر مستقبلًا، والمصاريف المسجّلة سابقًا تبقى.");
+  if (!ok) return;
   state.recurring = state.recurring.filter(r => r.id !== id);
   save(); render();
   toast("تم حذف المصروف المتكرر");
@@ -652,7 +697,7 @@ el("potForm").addEventListener("submit", e => {
   toast("تم إنشاء الصندوق 🫙");
 });
 
-el("potsGrid").addEventListener("click", e => {
+el("potsGrid").addEventListener("click", async e => {
   const dep = e.target.closest("[data-dep]");
   const wd = e.target.closest("[data-wd]");
   const del = e.target.closest(".pot-del");
@@ -660,7 +705,8 @@ el("potsGrid").addEventListener("click", e => {
   if (del) {
     const p = state.pots.find(x => x.id === del.dataset.id);
     if (!p) return;
-    if (!confirm(`حذف صندوق «${p.name}»؟ (الرصيد ${fmt(p.balance)} سيُحذف)`)) return;
+    const ok = await askConfirm(`حذف صندوق «${p.name}»؟`, `الرصيد ${fmt(p.balance)} سيُحذف.`);
+    if (!ok) return;
     state.pots = state.pots.filter(x => x.id !== del.dataset.id);
     save(); render();
     toast("تم حذف الصندوق");
@@ -668,9 +714,9 @@ el("potsGrid").addEventListener("click", e => {
   }
 
   if (dep) {
-    const p = state.pots.find(x => x.id === dep.dataset.id);
+    const p = state.pots.find(x => x.id === dep.dataset.dep);
     if (!p) return;
-    const v = Number(prompt(`كم تبين تودعين في «${p.name}»؟`, ""));
+    const v = await askAmount(`إيداع في «${p.name}»`, `الرصيد الحالي: ${fmt(p.balance)}`);
     if (!(v > 0)) return;
     p.balance = Number(p.balance || 0) + v;
     save(); render();
@@ -680,9 +726,9 @@ el("potsGrid").addEventListener("click", e => {
   }
 
   if (wd) {
-    const p = state.pots.find(x => x.id === wd.dataset.id);
+    const p = state.pots.find(x => x.id === wd.dataset.wd);
     if (!p) return;
-    const v = Number(prompt(`كم تبين تسحبين من «${p.name}»؟ (الرصيد ${fmt(p.balance)})`, ""));
+    const v = await askAmount(`سحب من «${p.name}»`, `الرصيد الحالي: ${fmt(p.balance)}`);
     if (!(v > 0)) return;
     if (v > Number(p.balance || 0)) { toast("المبلغ أكبر من رصيد الصندوق", "error"); return; }
     p.balance = Number(p.balance) - v;
@@ -803,16 +849,14 @@ el("restoreFile").addEventListener("change", e => {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload = async () => {
     try {
       const obj = JSON.parse(String(reader.result).replace(/^﻿/, ""));
       if (!obj || typeof obj !== "object" || !Array.isArray(obj.expenses)) {
         throw new Error("صيغة غير صحيحة");
       }
-      if (!confirm("استرجاع هذه النسخة سيستبدل بياناتك الحالية. متأكدة؟")) {
-        el("restoreFile").value = "";
-        return;
-      }
+      const ok = await askConfirm("استرجاع هذه النسخة؟", "سيتم استبدال بياناتك الحالية بالكامل.");
+      if (!ok) { el("restoreFile").value = ""; return; }
       localStorage.setItem(STORE_KEY, JSON.stringify(obj));
       state = load();
       viewKey = monthKeyOf(new Date());
