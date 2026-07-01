@@ -117,7 +117,7 @@ body {
 .btn.ghost:hover { background: var(--card-2); border-color: var(--pink); color: var(--pink); }
 
 /* Stat cards row */
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 16px; }
 .stat {
   background: var(--card); border: 1.5px solid var(--line); border-radius: var(--radius);
   padding: 16px 18px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
@@ -128,11 +128,13 @@ body {
 }
 .stat.income::after { background: var(--green); }
 .stat.spent::after { background: var(--red); }
+.stat.fixed::after { background: var(--amber); }
 .stat.save::after { background: var(--purple); }
 .stat .lbl { color: var(--muted); font-size: 12.5px; display: flex; align-items: center; gap: 6px; }
 .stat .val { font-size: 24px; font-weight: 800; margin-top: 4px; }
 .stat.income .val { color: var(--green); }
 .stat.spent .val { color: var(--red); }
+.stat.fixed .val { color: #d9820f; }
 .stat.save .val { color: var(--purple); }
 
 /* Budget card */
@@ -301,7 +303,7 @@ body {
 .toast.error { border-color: var(--red); }
 
 @media (max-width: 700px) {
-  .stats { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: 1fr 1fr; }
   .two-col { grid-template-columns: 1fr; }
   .remaining { text-align: right; }
   .add-btn { width: 100%; }

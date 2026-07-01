@@ -176,17 +176,23 @@ function render() {
   if (!el("expDate").value) el("expDate").value = todayISO();
   if (!el("incDate").value) el("incDate").value = todayISO();
 
-  const exps = monthExpenses();
+  const allExps = monthExpenses();
+  // فصل المصاريف الثابتة (المتكررة) عن المصاريف العادية المتغيّرة
+  const exps = allExps.filter(e => !e.recurringId);   // العادية = تدخل في الميزانية
+  const fixedExps = allExps.filter(e => e.recurringId); // الثابتة = خارج الميزانية
   const incs = monthIncomes();
   const income = monthIncomeTotal();
   const spent = exps.reduce((s, e) => s + Number(e.amount), 0);
+  const fixed = fixedExps.reduce((s, e) => s + Number(e.amount), 0);
   const remaining = ms.budget - spent;
   const pct = ms.budget > 0 ? (spent / ms.budget) * 100 : 0;
 
   el("incomeDisplay").textContent = fmt(income);
   el("statIncome").textContent = fmt(income);
   el("statSpent").textContent = fmt(spent);
-  el("statSaved").textContent = fmt(Math.max(income - spent, 0));
+  el("statFixed").textContent = fmt(fixed);
+  // الادخار الحقيقي = الدخل − العادية − الثابتة
+  el("statSaved").textContent = fmt(Math.max(income - spent - fixed, 0));
 
   const remEl = el("remaining");
   remEl.textContent = fmt(remaining);
@@ -201,13 +207,13 @@ function render() {
   if (pct >= 100) bar.classList.add("over");
   else if (pct >= 80) bar.classList.add("warn");
 
-  renderGoal(income, spent);
+  renderGoal(income, spent + fixed);
   renderWeeks(ms, exps);
   renderBreakdown(exps, spent);
   renderTxList(exps);
   renderIncomeBreakdown(incs, income);
   renderIncomeList(incs);
-  renderRecurring();
+  renderRecurring(fixed);
   renderPots();
 }
 
@@ -427,7 +433,13 @@ function renderTxList(exps) {
   }).join("");
 }
 
-function renderRecurring() {
+function renderRecurring(fixed = 0) {
+  const totalEl = el("recTotal");
+  if (totalEl) {
+    totalEl.textContent = state.recurring.length
+      ? `إجمالي الثابتة هذا الشهر: ${fmt(fixed)} (خارج الميزانية)`
+      : "";
+  }
   const list = el("recList");
   if (state.recurring.length === 0) {
     list.innerHTML = `<p class="empty">ما فيه مصاريف متكررة · أضيفي اشتراكاتك الثابتة ⬆️</p>`;
@@ -617,7 +629,8 @@ el("expenseForm").addEventListener("submit", e => {
 function checkLimits(date) {
   const key = date.slice(0, 7);
   const ms = monthSettings(key);
-  const exps = monthExpenses(key);
+  // المصاريف العادية فقط (بدون الثابتة) تحسب على الميزانية
+  const exps = monthExpenses(key).filter(e => !e.recurringId);
   const spent = exps.reduce((s, e) => s + Number(e.amount), 0);
 
   if (ms.budget > 0 && spent > ms.budget) {

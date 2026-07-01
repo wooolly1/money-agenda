@@ -68,6 +68,10 @@
         <span class="lbl">🧾 المصروف</span>
         <div class="val" id="statSpent">0</div>
       </div>
+      <div class="stat fixed">
+        <span class="lbl">🔁 ثابتة</span>
+        <div class="val" id="statFixed">0</div>
+      </div>
       <div class="stat save">
         <span class="lbl">🏦 ادّخرت</span>
         <div class="val" id="statSaved">0</div>
@@ -224,9 +228,10 @@
     <!-- المصاريف المتكررة -->
     <section class="card">
       <div class="section-head">
-        <h2>🔁 مصاريف متكررة</h2>
-        <span class="muted small">تنضاف تلقائيًا كل شهر (اشتراكات، إيجار، فواتير ثابتة)</span>
+        <h2>🔁 مصاريف متكررة (ثابتة)</h2>
+        <span class="muted small" id="recTotal"></span>
       </div>
+      <p class="save-note" style="margin-bottom:14px;">هذي المصاريف الثابتة ما تدخل في «المصروف» ولا الميزانية فوق — محسوبة لحالها.</p>
       <form id="recurringForm" class="expense-form">
         <div class="field">
           <label>المبلغ</label>
