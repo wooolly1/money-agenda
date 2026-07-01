@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>أجندة فلوسي · تتبّع الميزانية الشهرية</title>
+  <title data-i18n="title">أجندة فلوسي · تتبّع الميزانية الشهرية</title>
 
   <!-- أيقونة الشاشة الرئيسية (Home Screen) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -26,12 +26,16 @@
       <div class="brand">
         <span class="logo">💖</span>
         <div>
-          <h1>أجندة فلوسي</h1>
-          <p class="tag">تتبّعي فلوسك بكل سهولة</p>
+          <h1 data-i18n="brand">أجندة فلوسي</h1>
+          <p class="tag" data-i18n="tag">تتبّعي فلوسك بكل سهولة</p>
         </div>
       </div>
       <div class="topbar-actions">
-        <select id="currency" class="currency" title="العملة">
+        <select id="lang" class="currency" title="Language / اللغة">
+          <option value="ar">🇸🇦 العربية</option>
+          <option value="en">🇬🇧 English</option>
+        </select>
+        <select id="currency" class="currency" data-i18n-title="currencyTitle" title="العملة">
           <option value="ر.س">ر.س</option>
           <option value="د.إ">د.إ</option>
           <option value="د.ك">د.ك</option>
@@ -39,41 +43,41 @@
           <option value="$">$</option>
           <option value="€">€</option>
         </select>
-        <button id="excelBtn" class="btn ghost" title="تصدير كل البيانات إلى ملف اكسل">📊 اكسل</button>
-        <button id="backupBtn" class="btn ghost" title="حفظ نسخة احتياطية من كل بياناتك">💾 نسخة</button>
-        <button id="restoreBtn" class="btn ghost" title="استرجاع البيانات من نسخة احتياطية">📥 استرجاع</button>
+        <button id="excelBtn" class="btn ghost" data-i18n="excel">📊 اكسل</button>
+        <button id="backupBtn" class="btn ghost" data-i18n="backup">💾 نسخة</button>
+        <button id="restoreBtn" class="btn ghost" data-i18n="restore">📥 استرجاع</button>
         <input type="file" id="restoreFile" accept="application/json,.json" hidden />
       </div>
     </header>
 
-    <p class="save-note">✅ بياناتك محفوظة تلقائيًا في هذه الصفحة على جهازك. للاحتفاظ بنسخة أو نقلها لجهاز ثاني استخدمي «💾 نسخة».</p>
+    <p class="save-note" data-i18n="saveNote">✅ بياناتك محفوظة تلقائيًا في هذه الصفحة على جهازك. للاحتفاظ بنسخة أو نقلها لجهاز ثاني استخدمي «💾 نسخة».</p>
 
     <!-- التنقّل بين الشهور -->
     <section class="month-nav">
-      <button id="prevMonth" class="nav-btn" title="الشهر السابق">‹</button>
+      <button id="prevMonth" class="nav-btn">‹</button>
       <div class="month-center">
         <strong id="monthLabel">—</strong>
-        <button id="todayBtn" class="btn-link">اليوم</button>
+        <button id="todayBtn" class="btn-link" data-i18n="today">اليوم</button>
       </div>
-      <button id="nextMonth" class="nav-btn" title="الشهر التالي">›</button>
+      <button id="nextMonth" class="nav-btn">›</button>
     </section>
 
     <!-- بطاقات سريعة -->
     <section class="stats">
       <div class="stat income">
-        <span class="lbl">💵 الدخل</span>
+        <span class="lbl" data-i18n="stIncome">💵 الدخل</span>
         <div class="val" id="statIncome">0</div>
       </div>
       <div class="stat spent">
-        <span class="lbl">🧾 المصروف</span>
+        <span class="lbl" data-i18n="stSpent">🧾 المصروف</span>
         <div class="val" id="statSpent">0</div>
       </div>
       <div class="stat fixed">
-        <span class="lbl">🔁 ثابتة</span>
+        <span class="lbl" data-i18n="stFixed">🔁 ثابتة</span>
         <div class="val" id="statFixed">0</div>
       </div>
       <div class="stat save">
-        <span class="lbl">🏦 ادّخرت</span>
+        <span class="lbl" data-i18n="stSaved">🏦 ادّخرت</span>
         <div class="val" id="statSaved">0</div>
       </div>
     </section>
@@ -83,21 +87,21 @@
       <div class="budget-head">
         <div class="inline-inputs">
           <div class="mini-field">
-            <label>🎯 ميزانية هذا الشهر</label>
+            <label data-i18n="budgetLabel">🎯 ميزانية هذا الشهر</label>
             <div class="input-row">
               <input type="number" id="monthlyBudget" placeholder="0" min="0" inputmode="decimal" />
-              <button id="saveBudget" class="btn primary">حفظ</button>
+              <button id="saveBudget" class="btn primary" data-i18n="save">حفظ</button>
             </div>
           </div>
           <div class="mini-field">
-            <label>💵 دخل هذا الشهر</label>
+            <label data-i18n="incomeThisMonth">💵 دخل هذا الشهر</label>
             <div class="input-row">
               <strong id="incomeDisplay" style="font-size:18px;font-weight:800;color:var(--green);">0</strong>
             </div>
           </div>
         </div>
         <div class="remaining">
-          <span class="muted">الباقي لك</span>
+          <span class="muted" data-i18n="remainingLabel">الباقي لك</span>
           <strong id="remaining" class="remaining-amount">0</strong>
         </div>
       </div>
@@ -106,53 +110,43 @@
         <div class="progress-bar" id="monthProgress"></div>
       </div>
       <div class="progress-meta">
-        <span>صُرف: <b id="spentTotal">0</b></span>
-        <span><b id="spentPct">0%</b> من الميزانية</span>
+        <span><span data-i18n="spentWord">صُرف:</span> <b id="spentTotal">0</b></span>
+        <span><b id="spentPct">0%</b> <span data-i18n="ofBudget">من الميزانية</span></span>
       </div>
     </section>
 
     <!-- الدخل -->
     <section class="card">
-      <h2>💵 سجّلي دخلك</h2>
+      <h2 data-i18n="incomeTitle">💵 سجّلي دخلك</h2>
       <form id="incomeForm" class="expense-form">
         <div class="field">
-          <label>المبلغ</label>
+          <label data-i18n="amount">المبلغ</label>
           <input type="number" id="incAmount" placeholder="0" min="0" step="any" inputmode="decimal" required />
         </div>
         <div class="field">
-          <label>من وين؟ (المصدر)</label>
-          <select id="incSource">
-            <option value="💼 راتب">💼 راتب</option>
-            <option value="💸 مكافأة">💸 مكافأة</option>
-            <option value="🔁 تحويل">🔁 تحويل</option>
-            <option value="🛍️ بيع">🛍️ بيع</option>
-            <option value="📈 استثمار">📈 استثمار</option>
-            <option value="💻 عمل حر">💻 عمل حر</option>
-            <option value="🎁 هدية">🎁 هدية</option>
-            <option value="🏷️ استرجاع">🏷️ استرجاع</option>
-            <option value="✏️ مصدر آخر">✏️ مصدر آخر (اكتبيه)</option>
-          </select>
+          <label data-i18n="sourceLabel">من وين؟ (المصدر)</label>
+          <select id="incSource"></select>
         </div>
         <div class="field grow" id="incCustomWrap" style="display:none;">
-          <label>اسم المصدر</label>
-          <input type="text" id="incCustomSource" placeholder="مثال: إيجار شقة، أرباح متجري…" />
+          <label data-i18n="customSourceLabel">اسم المصدر</label>
+          <input type="text" id="incCustomSource" data-i18n-ph="customSourcePh" placeholder="مثال: إيجار شقة، أرباح متجري…" />
         </div>
         <div class="field">
-          <label>التاريخ</label>
+          <label data-i18n="date">التاريخ</label>
           <input type="date" id="incDate" required />
         </div>
         <div class="field grow">
-          <label>ملاحظة (اختياري)</label>
-          <input type="text" id="incNote" placeholder="مثال: راتب شهر يونيو" />
+          <label data-i18n="noteOpt">ملاحظة (اختياري)</label>
+          <input type="text" id="incNote" data-i18n-ph="incomeNotePh" placeholder="مثال: راتب شهر يونيو" />
         </div>
-        <button type="submit" class="btn primary add-btn">+ إضافة</button>
+        <button type="submit" class="btn primary add-btn" data-i18n="add">+ إضافة</button>
       </form>
     </section>
 
     <div class="two-col">
       <!-- من وين جاك الدخل -->
       <section class="card">
-        <h2>💰 من وين جاك دخلك؟</h2>
+        <h2 data-i18n="incomeFromTitle">💰 من وين جاك دخلك؟</h2>
         <div id="incTopSource"></div>
         <div id="incBreakdown" class="breakdown"></div>
       </section>
@@ -160,7 +154,7 @@
       <!-- سجل الدخل -->
       <section class="card">
         <div class="section-head">
-          <h2>🧾 دخلك</h2>
+          <h2 data-i18n="yourIncome">🧾 دخلك</h2>
           <span class="muted small" id="incCount">0</span>
         </div>
         <ul id="incList" class="tx-list"></ul>
@@ -170,21 +164,21 @@
     <!-- هدف الادخار -->
     <section class="card">
       <div class="section-head">
-        <h2>🏦 هدف الادخار</h2>
+        <h2 data-i18n="goalTitle">🏦 هدف الادخار</h2>
         <div class="input-row">
-          <input type="number" id="savingsGoal" placeholder="مثال: 1000" min="0" inputmode="decimal"
+          <input type="number" id="savingsGoal" data-i18n-ph="goalPh" placeholder="مثال: 1000" min="0" inputmode="decimal"
                  style="width:140px;background:var(--card-2);border:1.5px solid var(--line);color:var(--text);border-radius:12px;padding:8px 12px;font-family:inherit;font-weight:700;" />
-          <button id="saveGoal" class="btn ghost">حفظ الهدف</button>
+          <button id="saveGoal" class="btn ghost" data-i18n="saveGoal">حفظ الهدف</button>
         </div>
       </div>
       <div class="goal-bar"><div class="goal-fill" id="goalFill"></div></div>
-      <div class="goal-msg" id="goalMsg">حدّدي هدف ادخار لهذا الشهر 💕</div>
+      <div class="goal-msg" id="goalMsg"></div>
     </section>
 
     <!-- الأسابيع -->
     <section class="card">
       <div class="section-head">
-        <h2>📅 ميزانية الأسابيع</h2>
+        <h2 data-i18n="weeksTitle">📅 ميزانية الأسابيع</h2>
         <span class="muted small" id="weeklyCap">—</span>
       </div>
       <div id="weeksGrid" class="weeks-grid"></div>
@@ -192,71 +186,53 @@
 
     <!-- إضافة مصروف -->
     <section class="card">
-      <h2>✏️ سجّلي مصروف</h2>
+      <h2 data-i18n="expenseTitle">✏️ سجّلي مصروف</h2>
       <form id="expenseForm" class="expense-form">
         <div class="field">
-          <label>المبلغ</label>
+          <label data-i18n="amount">المبلغ</label>
           <input type="number" id="expAmount" placeholder="0" min="0" step="any" inputmode="decimal" required />
         </div>
         <div class="field">
-          <label>الفئة</label>
-          <select id="expCategory">
-            <option value="🍔 أكل">🍔 أكل</option>
-            <option value="🚗 مواصلات">🚗 مواصلات</option>
-            <option value="🛒 تسوق">🛒 تسوق</option>
-            <option value="🏠 فواتير">🏠 فواتير</option>
-            <option value="☕ كافيهات">☕ كافيهات</option>
-            <option value="💊 صحة">💊 صحة</option>
-            <option value="🎮 ترفيه">🎮 ترفيه</option>
-            <option value="💄 جمال">💄 جمال</option>
-            <option value="🎁 هدايا">🎁 هدايا</option>
-            <option value="📦 أخرى">📦 أخرى</option>
-          </select>
+          <label data-i18n="categoryLabel">الفئة</label>
+          <select id="expCategory"></select>
         </div>
         <div class="field">
-          <label>التاريخ</label>
+          <label data-i18n="date">التاريخ</label>
           <input type="date" id="expDate" required />
         </div>
         <div class="field grow">
-          <label>ملاحظة (اختياري)</label>
-          <input type="text" id="expNote" placeholder="مثال: غداء مع الأصحاب" />
+          <label data-i18n="noteOpt">ملاحظة (اختياري)</label>
+          <input type="text" id="expNote" data-i18n-ph="expenseNotePh" placeholder="مثال: غداء مع الأصحاب" />
         </div>
-        <button type="submit" class="btn primary add-btn">+ إضافة</button>
+        <button type="submit" class="btn primary add-btn" data-i18n="add">+ إضافة</button>
       </form>
     </section>
 
     <!-- المصاريف المتكررة -->
     <section class="card">
       <div class="section-head">
-        <h2>🔁 مصاريف متكررة (ثابتة)</h2>
+        <h2 data-i18n="recurringTitle">🔁 مصاريف متكررة (ثابتة)</h2>
         <span class="muted small" id="recTotal"></span>
       </div>
-      <p class="save-note" style="margin-bottom:14px;">هذي المصاريف الثابتة ما تدخل في «المصروف» ولا الميزانية فوق — محسوبة لحالها.</p>
+      <p class="save-note" style="margin-bottom:14px;" data-i18n="recurringNote">هذي المصاريف الثابتة ما تدخل في «المصروف» ولا الميزانية فوق — محسوبة لحالها.</p>
       <form id="recurringForm" class="expense-form">
         <div class="field">
-          <label>المبلغ</label>
+          <label data-i18n="amount">المبلغ</label>
           <input type="number" id="recAmount" placeholder="0" min="0" step="any" inputmode="decimal" required />
         </div>
         <div class="field">
-          <label>الفئة</label>
-          <select id="recCategory">
-            <option value="🏠 فواتير">🏠 فواتير</option>
-            <option value="🎮 ترفيه">🎮 ترفيه</option>
-            <option value="🚗 مواصلات">🚗 مواصلات</option>
-            <option value="💊 صحة">💊 صحة</option>
-            <option value="🛒 تسوق">🛒 تسوق</option>
-            <option value="📦 أخرى">📦 أخرى</option>
-          </select>
+          <label data-i18n="categoryLabel">الفئة</label>
+          <select id="recCategory"></select>
         </div>
         <div class="field">
-          <label>يوم الخصم</label>
+          <label data-i18n="dayLabel">يوم الخصم</label>
           <input type="number" id="recDay" placeholder="1" min="1" max="31" value="1" required />
         </div>
         <div class="field grow">
-          <label>الاسم (اختياري)</label>
-          <input type="text" id="recNote" placeholder="مثال: اشتراك نتفلكس" />
+          <label data-i18n="nameOpt">الاسم (اختياري)</label>
+          <input type="text" id="recNote" data-i18n-ph="recurringNotePh" placeholder="مثال: اشتراك نتفلكس" />
         </div>
-        <button type="submit" class="btn primary add-btn">+ إضافة</button>
+        <button type="submit" class="btn primary add-btn" data-i18n="add">+ إضافة</button>
       </form>
       <ul id="recList" class="tx-list" style="margin-top:14px;"></ul>
     </section>
@@ -264,32 +240,23 @@
     <!-- صناديق الادخار / الاحتياطي -->
     <section class="card">
       <div class="section-head">
-        <h2>🫙 صناديق الادخار</h2>
+        <h2 data-i18n="potsTitle">🫙 صناديق الادخار</h2>
         <span class="muted small" id="potsTotal">—</span>
       </div>
       <form id="potForm" class="expense-form">
         <div class="field">
-          <label>الأيقونة</label>
-          <select id="potEmoji">
-            <option value="🛟">🛟 احتياطي</option>
-            <option value="🚗">🚗 سيارة</option>
-            <option value="✈️">✈️ سفر</option>
-            <option value="🏠">🏠 بيت</option>
-            <option value="🎓">🎓 تعليم</option>
-            <option value="📱">📱 جوال</option>
-            <option value="🎁">🎁 مناسبات</option>
-            <option value="💍">💍 ادخار كبير</option>
-          </select>
+          <label data-i18n="iconLabel">الأيقونة</label>
+          <select id="potEmoji"></select>
         </div>
         <div class="field grow">
-          <label>اسم الصندوق</label>
-          <input type="text" id="potName" placeholder="مثال: تأمين السيارة" required />
+          <label data-i18n="potNameLabel">اسم الصندوق</label>
+          <input type="text" id="potName" data-i18n-ph="potNamePh" placeholder="مثال: تأمين السيارة" required />
         </div>
         <div class="field">
-          <label>الهدف (اختياري)</label>
+          <label data-i18n="targetOpt">الهدف (اختياري)</label>
           <input type="number" id="potTarget" placeholder="0" min="0" inputmode="decimal" />
         </div>
-        <button type="submit" class="btn primary add-btn">+ صندوق</button>
+        <button type="submit" class="btn primary add-btn" data-i18n="addPot">+ صندوق</button>
       </form>
       <div id="potsGrid" class="weeks-grid" style="margin-top:14px;"></div>
     </section>
@@ -297,7 +264,7 @@
     <div class="two-col">
       <!-- وين راحت الفلوس -->
       <section class="card">
-        <h2>🔍 وين راحت فلوسك؟</h2>
+        <h2 data-i18n="whereMoney">🔍 وين راحت فلوسك؟</h2>
         <div id="topCat"></div>
         <div id="breakdown" class="breakdown"></div>
       </section>
@@ -305,14 +272,14 @@
       <!-- سجل المصاريف -->
       <section class="card">
         <div class="section-head">
-          <h2>🧾 مصاريفك</h2>
+          <h2 data-i18n="yourExpenses">🧾 مصاريفك</h2>
           <span class="muted small" id="txCount">0</span>
         </div>
         <ul id="txList" class="tx-list"></ul>
       </section>
     </div>
 
-    <footer class="foot">بياناتك محفوظة على جهازك فقط 💖 أجندة فلوسي</footer>
+    <footer class="foot" data-i18n="foot">بياناتك محفوظة على جهازك فقط 💖 أجندة فلوسي</footer>
   </div>
 
   <!-- نافذة داخلية (بديلة عن prompt/confirm المحجوبة في آيفون) -->
@@ -322,8 +289,8 @@
       <p id="modalSub" class="modal-sub"></p>
       <input type="number" id="modalInput" inputmode="decimal" step="any" min="0" />
       <div class="modal-actions">
-        <button id="modalCancel" class="btn ghost" type="button">إلغاء</button>
-        <button id="modalOk" class="btn primary" type="button">تأكيد</button>
+        <button id="modalCancel" class="btn ghost" type="button" data-i18n="cancel">إلغاء</button>
+        <button id="modalOk" class="btn primary" type="button" data-i18n="confirm">تأكيد</button>
       </div>
     </div>
   </div>
